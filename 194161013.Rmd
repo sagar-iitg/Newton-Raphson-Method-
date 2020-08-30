@@ -1,0 +1,288 @@
+---
+title: "R-Programming Lab \t : Assignment 3"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+
+
+
+\newpage
+***
+**Question1**
+
+Find the minimum of the function  f(x)=x1-x2+2*x1^2+2*x1*x2+x2^2
+using Newton's method.
+
+
+
+**Libraries**
+
+```{r message=FALSE, warning=FALSE}
+library(numDeriv)
+library(pracma)
+```
+
+
+**Defining function**
+
+**f(x)**
+
+```{r}
+
+func<- function(x) {
+  x1<-x[1]
+  x2<-x[2]
+  
+  result<-x1-x2+2*x1^2+2*x1*x2+x2^2
+  result
+}
+
+
+```
+
+
+
+**Hessian Matrix of f(x)**
+
+
+```{r}
+
+hessian_mat=hessian(func,c(0,0))
+hessian_matrix<-as.matrix(hessian_mat)
+cat("Hessian of function f(x) is:")
+hessian_matrix
+
+
+```
+
+ **Inverse of hessian matrix**
+
+```{r}
+H=inv(hessian_matrix)   #Inverse of hessian matrix
+H
+```
+
+**tolerance and iteration**
+
+```{r}
+tolerance <- c(0,0)  #set tolerance=0 (when gradient of function is zero  Then x is optimum point)
+k=0  #Here k is iteration
+```
+
+
+
+\newpage
+***
+
+**code of newton method for finding minima of function**
+```{r}
+root<-function(x,g,tolerance){
+  while( (all(abs(g)>=tolerance)) ){
+    if(k <101){
+      g=x
+      x=x-H %*% grad(func,g)
+      k=k+1
+      #print(k)
+      #print("\n")
+      #print(x)
+      
+    }
+    else{
+      break;
+    }
+    
+    
+    
+  }
+  return(x)
+}
+```
+
+
+
+**choosing randomly 100 guess**
+
+```{r}
+a=seq(0,4.95,0.05)
+b=seq(0,4.95,0.05)
+```
+
+```{r}
+data.frame(a,b)
+```
+
+Each row in dataframe represents initial value of x.
+And from above dataframe you can see that there are  100 differents points 
+and point (0,0) is included at index 1
+
+\newpage
+***
+```{r}
+
+m<-matrix(,nrow=2,ncol=100)
+
+
+```
+
+**Finding minima of function for 100 points**  
+
+```{r}
+
+
+for(i in 1:100){
+  x<-c(a[i],b[i])
+  m[,i]=root(x,grad(func,x),tolerance)
+  
+}
+```
+
+**minimum value of f(x)**
+```{r}
+m
+```
+
+
+
+from above matrix(2*100) you can observe that the 
+Each column represents the minimum of  function calculating using newton's method (implemented from scratch) for different starting values .  
+we are taken 100 such differnet values and minimum came out to be the same value for each case .
+
+
+
+\newpage
+***
+**Value of function f(x) at mimima (x1=-1,x2=1.5)**
+
+```{r}
+ans<-0
+for(i in 1:100){
+   ans[i]<-func(c(m[,i]))
+   
+}
+```
+
+```{r}
+ans
+```
+
+
+\newpage
+***
+**using inbuilt function(nleqslv)**
+
+**Finding minima function using library function**
+
+
+
+
+
+
+```{r}
+
+f <- function(x){
+  y <- numeric(2)
+  y[1] <- 4*x[1] + 2*x[2]+1
+  y[2] <-  2*x[1] + 2*x[2]- 1
+  y
+}
+```
+
+
+
+
+```{r}
+jacob <- function(x) {
+  n <- length(x)
+  Df <- matrix(numeric(n*n),n,n)
+  Df[1,1] <- 4
+  Df[1,2] <- 2
+  Df[2,1] <- 2
+  Df[2,2] <- 2
+  Df
+}
+```
+
+
+
+```{r}
+a=seq(-1,4.95,0.06)
+b=seq(-1,4.95,0.06)
+library(numDeriv)
+library(pracma)
+
+library(nleqslv)
+mat<-matrix(,nrow=2,ncol=100)
+
+
+for(i in 1:100){
+  xstart <- c(a[i],b[i]) 
+  fstart <- jacob(xstart)
+  xstart
+  fstart
+  mat[,i]<-nleqslv(xstart,f,method="Newton")$x
+  
+}
+
+```
+\newpage
+***
+**minimum value of f(x) **
+
+
+```{r}
+mat
+```
+
+
+from above matrix(2*100) you can observe that the 
+Each column represents the minimum of  function calculating using newton's method (implemented using inbuilt function) for different starting values .  
+we are taken 100 such differnet values and minimum came out to be the same value for each case .
+
+\newpage
+***
+
+**Value of function f(x) at minima (using inbuilt function)**
+
+
+```{r}
+ans_inbuilt<-0
+for(i in 1:100){
+   ans_inbuilt[i]<-func(c(mat[,i]))
+   
+}
+   
+```
+
+
+```{r}
+ans_inbuilt
+```
+\newpage
+***
+**Solution Agreement with library function**
+```{r}
+own_ans<-ans
+lib_ans<-ans_inbuilt
+```
+
+
+
+```{r}
+data.frame(own_ans,lib_ans)
+```
+
+from above dataframe you can observe that the data in column 1(own_ans) is exactly equal to column 2(lib_ans) as expected.
+
+
+
+
